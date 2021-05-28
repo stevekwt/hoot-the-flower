@@ -24,7 +24,6 @@ hootApp.TMDbImageBaseUrl = `https://image.tmdb.org/t/p`;
 hootApp.TMDbImageBaseAPIUrl = `https://api.themoviedb.org/3/configuration`;
 hootApp.TMDBImageSize = `w1280`;
 
-
 hootApp.moodKey = [
 	[
 		{
@@ -110,19 +109,14 @@ hootApp.sentToEffect = (senti) => {				// 0.25
 	// if the sentiment is 0 or above,			// 0.25
 	const sentLev = Math.ceil(senti * 10); // returns 3
 	if (sentLev >= 0) {
-		console.log(`sentLev is`, sentLev);
 		// go into the positive zone, ie the 1st element of the moodKey array, and filter out all elements but the matching one
 		const effectObject = hootApp.moodKey[1].filter(Obj=>{
 			return Obj.sentLevel === sentLev;})
-		console.log(effectObject[0].effect);
 		return effectObject[0].effect	
 	} else {
-		console.log(`this number is less than zero`); // -0.06 * 10 = -0.6
-		console.log(`sentLev is`, sentLev);
 		// go into the negative zone, ie the 0th element of the moodKey array, and filter out all elements but the matching one
 		const effectObject = hootApp.moodKey[0].filter(Obj=>{
 			return Obj.sentLevel === sentLev ;})
-		console.log(effectObject[0].effect);
 		return effectObject[0].effect	
 	}
 };
@@ -134,14 +128,11 @@ hootApp.randomElement = function(array) {
 	return array[index];
 };
 
-
-
 // 1111111111 ==== START MOVIE API ============
 // API call to OMDb 
 // store the promise in a variable
 // store that variable in a method
 hootApp.OMDbDataPromise = (pickedMovie) => {
-	console.log(`pickedMovie is`, pickedMovie);
 	// send user's movie title to OMDb and return its plot
 	const OMDbPromise = $.ajax({
 		url: 'https://proxy.hackeryou.com',
@@ -149,8 +140,6 @@ hootApp.OMDbDataPromise = (pickedMovie) => {
 			method:'GET',
 			data: {
 				reqUrl: `${hootApp.OMDbUrl}`,
-				// method: 'GET',
-				// dataType: 'json',
 				params: {
 					apikey: hootApp.OMDbApiKey,
 					t: `${pickedMovie}`,
@@ -160,16 +149,13 @@ hootApp.OMDbDataPromise = (pickedMovie) => {
 	})
 	return OMDbPromise;
 }
-// method that processes OMDb promise & displays data to page
-// asdf ACTUALLY what it does is throws this data to Sentim
+// throws this data to Sentim
 hootApp.displayOMDb = (movie) => {
 	if (movie) {
-		console.log("1. testing OMDb API");
 		// store promise method in string
 		const OMDbData = hootApp.OMDbDataPromise(movie);
 		// if the promise is fulfilled, print out the data
 		OMDbData.done((OMDbApiResponse) => {
-			console.log(`2. The IMDB number is:`, OMDbApiResponse.imdbID);
 			moviePlot = OMDbApiResponse.Plot;
 			hootApp.displaySentim(moviePlot); 
 			hootApp.displayTheMovie(OMDbApiResponse.imdbID);
@@ -178,15 +164,11 @@ hootApp.displayOMDb = (movie) => {
 }
 // ==== END MOVIE API ============
 
-
-
-
 // 222222222 ==== START SENTIM API ============
 // API call to Sentim 
 // store the promise in a variable
 // store that variable in a method
 hootApp.sentimDataPromise = (plotString) => {
-	console.log(`4. plotString is`, plotString);
 	const SentimPromise = $.ajax({
 		url: hootApp.SentimUrl,
 		method: 'POST',
@@ -196,27 +178,23 @@ hootApp.sentimDataPromise = (plotString) => {
 			Accept: "application/json", 
 			"Content-Type": "application/json"
 		},
-		success: function (data) {
-			console.log('this has worked'); },
+		success: function (data) { },
 		error: function (data) {
-			alert('this has not worked'); }
+			alert(`This sentiment analysis didn't come back; the API might be down`); }
 	})
 	return SentimPromise;
 };
 // method that processes Sentim API promise & displays data to page
 hootApp.displaySentim = (plot) => {
-	console.log("3. testing sentim API; the plot is:", plot);
 	// call the method that returns the API promise
 	const sentimData = hootApp.sentimDataPromise(plot);
 	// check whether the promise has resolved & log out the data from successful promise
 	// if the promise is fulfilled, print out the data
 	sentimData.done((sentimApiResponse) => {
-		console.log(`sentimApiResponse is `, sentimApiResponse);
 		$(".top-result-text").append(`
 				<p> <span class="polarity"> Okay, so the emotional polarity of this movie is <span class="polarityNum">${sentimApiResponse.result.polarity}</span>.
 					</span>
 		`)
-		console.log(`the emotional polarity of this movie is`, sentimApiResponse.result.polarity, `and the sentiment to send to the strain API is`, hootApp.sentToEffect(sentimApiResponse.result.polarity));
 		const effecForDisplay = hootApp.sentToEffect(sentimApiResponse.result.polarity).toLowerCase();
 		// translate the polarity to effect & send the effect to the strain API
 		const effectForStrainAPI = hootApp.sentToEffect(sentimApiResponse.result.polarity);
@@ -233,7 +211,6 @@ hootApp.displaySentim = (plot) => {
 // store the promise returned within a variable
 // store that variable within a method 
 hootApp.strainDataPromise = (MovieEffect) => {
-	console.log(`MovieEffect is`, MovieEffect);
 	const strainPromise = $.ajax({
 		url: 'https://proxy.hackeryou.com',
 			dataType: 'json',
@@ -252,17 +229,12 @@ hootApp.strainDataPromise = (MovieEffect) => {
 // method that processes Strain API promise & displays data to page
 hootApp.displayStrains = (MovEffect) => {
 	// call the method that returns the API promise
-	console.log(`MovEffect is`, MovEffect);
 	const strainData = hootApp.strainDataPromise(MovEffect);
 	// check whether the promise has resolved & log out the data from successful promise
-	console.log("testing strains API");
 	// if the promise is fulfilled, print out the data
 	strainData.done((strainApiResponse) => {
-		// log all responses
-		console.log(strainApiResponse);
 		// choose 1 randomly
 		strainToPrint = hootApp.randomElement(strainApiResponse);
-		console.log(`strainToPrint is`, strainToPrint);
 		chosenStrain = strainToPrint.name;
 		chosenStrainID = strainToPrint.id;
 		// send this strain back to the Strain API to get all its effects
@@ -280,17 +252,13 @@ hootApp.displayStrains = (MovEffect) => {
 		}, 4000);
 		// make a URL for Leafly
 		const strainWithDashes = strainToPrint.name.replace(/\s+/g, "-");
-		console.log(`URL/strainWithDashes is https://www.leafly.com/search?q=${strainWithDashes}`);
 		strainSearchURL = `https://www.leafly.com/search?q=${strainWithDashes}`;
 	})
 }
 // ==== END first STRAIN API call ============
 
-
-
 // 44444444 ==== START second STRAIN API call to get the full list of effects associated with the chosen strain ============
 hootApp.strainEffectsDataPromise = (strainID) => {
-	console.log(`we are inside strainEffectsDataPromise & strainID is`, strainID);
 	const strainIDEffectsPromise = $.ajax({
 		url: 'https://proxy.hackeryou.com',
 			dataType: 'json',
@@ -309,14 +277,10 @@ hootApp.strainEffectsDataPromise = (strainID) => {
 // method that processes Strain API promise & displays data to page
 hootApp.displayStrainsEffects = (strainInDisplay) => {
 	// call the method that returns the API promise
-	console.log(`we are inside displayStrainsEffects & strainInDisplay is`, strainInDisplay);
 	const strainData = hootApp.strainEffectsDataPromise(strainInDisplay);
 	// check whether the promise has resolved & log out the data from successful promise
-	console.log("testing strainsEffect API");
 	// if the promise is fulfilled, print out the data
 	strainData.done((strainEffectsApiResponse) => {
-		// log all responses
-		console.log(`positive effects are ${strainEffectsApiResponse.positive}`);
 		// display all the positive effects slowly
 		const positiveEffects = strainEffectsApiResponse.positive;
 		// & print it    	
@@ -336,11 +300,8 @@ hootApp.displayStrainsEffects = (strainInDisplay) => {
 			}, (400 + counterPositive) );
 			counterPositive += 300;
 		}
-		// log all responses
-		console.log(`negative effects are ${strainEffectsApiResponse.negative}`);
 		// display all the negative effects slowly
 		const negativeEffects = strainEffectsApiResponse.negative;
-		console.log(`negativeEffects.length is`, negativeEffects.length)
 		// & print it    	
 		let counternegative = 0;
 		if (negativeEffects.length > 0) {
@@ -377,11 +338,8 @@ hootApp.displayStrainsEffects = (strainInDisplay) => {
 }
 // ==== END second STRAIN API call ============
 
-
-
 // 555555 ==== START 3rd STRAIN API call to get the strain's description =====
 hootApp.strainDescDataPromise = (strain) => {
-	console.log(`strain is`, strain);
 	const strainEffectsPromise = $.ajax({
 		url: 'https://proxy.hackeryou.com',
 			dataType: 'json',
@@ -400,15 +358,12 @@ hootApp.strainDescDataPromise = (strain) => {
 // method that processes Strain API promise & displays data to page
 hootApp.displayStrainsDesc = (strainInDisplay) => {
 	// call the method that returns the API promise
-	console.log(`we are inside displayStrainsDesc aaaaaaaaaaand strainInDisplay is`, strainInDisplay);
 	const strainData = hootApp.strainDescDataPromise(strainInDisplay);
 	// check whether the promise has resolved & log out the data from successful promise
-	console.log("testing strainsEffect API");
 	// if the promise is fulfilled, print out the data
 	strainData.done((strainDescriptionApiResponse) => {
 		// log all responses
 		descItself = strainDescriptionApiResponse[0].desc;
-		console.log(`descItself is`, descItself);
 		if (descItself) {
 			setTimeout(function(){
 				$(".strain-box").append(`
@@ -428,15 +383,11 @@ hootApp.displayStrainsDesc = (strainInDisplay) => {
 }
 // ==== END 3rd STRAIN API call ============
 
-
-
-
 // 555555555 ==== START THE MOVIE DB API CALL for poster images ============
 // API call to THE MOVIE DB 
 // store the promise returned within a variable
 // store that variable within a method 
 hootApp.theMovDataPromise = (Movie) => {
-	console.log(`Movie is`, Movie);
 	const theMoviePromise = $.ajax({
 		url: 'https://proxy.hackeryou.com',
 			dataType: 'json',
@@ -456,18 +407,13 @@ hootApp.theMovDataPromise = (Movie) => {
 // method that processes The Movie DB API promise & displays data to page
 hootApp.displayTheMovie = (Mov) => {
 // 	call the method that returns the API promise
-	console.log(`Mov is`, Mov);
 	const theMovData = hootApp.theMovDataPromise(Mov);
 // 	check whether the promise has resolved & log out the data from successful promise
-	console.log("testing whether we're inside The Movie DB API display function, and theMovData is");
 // 	if the promise is fulfilled, print out the data
 	theMovData.done((theMovApiResponse) => {
-// 		log all responses
-		console.log(`${hootApp.TMDbImageBaseUrl}/${hootApp.TMDBImageSize}/${theMovApiResponse.poster_path}`);
 // 		store in variable
 		const newBG = `${hootApp.TMDbImageBaseUrl}/${hootApp.TMDBImageSize}/${theMovApiResponse.poster_path}`;
 // 		& print it
-		// $("body").css("background-image", `url(${newBG})`);
 		setTimeout(function(){
 			$(".poster-img").append(`
 				<img src="${newBG}" class="center-img">
@@ -489,12 +435,10 @@ hootApp.displayTheMovie = (Mov) => {
 		$(".plot-box").empty();
 		// put value from text input into a variable
 		const userMovie = $('#movie').val();
-		console.log(`userMovie is`, userMovie);  
 		hootApp.displayOMDb(userMovie);
 		hootApp.displayShortPlotOMDb(userMovie);
 	})
 // ======= END EVENT LISTENER FOR FORM =========
-
 
 // ==== START INIT ============
 // init
@@ -504,10 +448,8 @@ hootApp.init = () => {
 
 // doc ready
 $(function() {
-    console.log("DOM is loaded");
     hootApp.init();
 });
-
 
 ////  66666 API CALL TO CONFIRM BASE URL FOR IMAGES WHICH APPARENTLY CHANGES SOMETIMES 
 hootApp.theMovIMAGEBASEURLDataPromise = () => {
@@ -527,13 +469,6 @@ hootApp.theMovIMAGEBASEURLDataPromise = () => {
 			xmlToJSON: false,
 			useCache: false
 			}
-
-				// params: {
-				// 	dataType: 'json',
-				// 	method: 'GET',
-					
-			// 	}
-			// }
 	});
 	return theMovieIMAGEBASEURLPromise;
 };
@@ -542,11 +477,8 @@ hootApp.displayIMAGEBASEURLTheMovie = () => {
 // 	call the method that returns the API promise
 	const theMovIMAGEBASEURLData = hootApp.theMovIMAGEBASEURLDataPromise();
 // 	check whether the promise has resolved & log out the data from successful promise
-	console.log("inside The theMovIMAGEBASEURLData API, theMovIMAGEBASEURLData is", theMovIMAGEBASEURLData);
 // 	if the promise is fulfilled, print out the data
 	theMovIMAGEBASEURLData.done((theMovApiIMAGEBASEURLResponse) => {
-// 		log all responses
-		console.log(theMovApiIMAGEBASEURLResponse.images.base_url, theMovApiIMAGEBASEURLResponse.images.backdrop_sizes[2]);
 // 		& store them
 		hootApp.TMDbImageBaseUrl = theMovApiIMAGEBASEURLResponse.images.base_url;
 		hootApp.TMDBImageSize = theMovApiIMAGEBASEURLResponse.images.backdrop_sizes[0];
@@ -560,11 +492,8 @@ hootApp.displayIMAGEBASEURLTheMovie = () => {
 	})
 }
 
-
-
 // 7777777 ==== START MOVIE API call for short plot ============
 hootApp.OMDbShortPlotDataPromise = (pickedMovieforShortPlot) => {
-	console.log(`pickedMovie is`, pickedMovieforShortPlot);
 	// send user's movie title to OMDb and return its plot
 	const OMDbShortPlotPromise = $.ajax({
 		url: 'https://proxy.hackeryou.com',
@@ -572,8 +501,6 @@ hootApp.OMDbShortPlotDataPromise = (pickedMovieforShortPlot) => {
 			method:'GET',
 			data: {
 				reqUrl: `${hootApp.OMDbUrl}`,
-				// method: 'GET',
-				// dataType: 'json',
 				params: {
 					apikey: hootApp.OMDbApiKey,
 					t: `${pickedMovieforShortPlot}`,
@@ -582,16 +509,13 @@ hootApp.OMDbShortPlotDataPromise = (pickedMovieforShortPlot) => {
 	})
 	return OMDbShortPlotPromise;
 }
-// method that processes OMDb promise & displays data to page
-// asdf ACTUALLY what it does is throws this data to Sentim
+// throws this data to Sentim
 hootApp.displayShortPlotOMDb = (movie) => {
 	if (movie) {
-		console.log("1. testing OMDb API");
 		// store promise method in string
 		const OMDbShortPlotData = hootApp.OMDbShortPlotDataPromise(movie);
 		// if the promise is fulfilled, print out the data
 		OMDbShortPlotData.done((OMDbApiShortPlotResponse) => {
-			console.log(`2. The IMDB number is:`, OMDbApiShortPlotResponse.imdbID);
 			ShortPlot = OMDbApiShortPlotResponse.Plot;
 			$(".plot-box").append(`
 				<p> Right, yeah, that one. ${ShortPlot}					
@@ -600,4 +524,3 @@ hootApp.displayShortPlotOMDb = (movie) => {
 	}
 }
 // ==== END MOVIE API ============
-
